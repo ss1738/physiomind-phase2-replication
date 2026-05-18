@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 """
-PhysioMind Phase-2 — cross-modal grounding of text-SAE features against
-REAL autonomic physiology (WESAD chest ECG).
+PhysioMind Phase 2, leave-one-subject-out variant: do text-SAE
+features track real autonomic physiology (WESAD chest ECG), or just
+look like they do?
 
-Falsifiable, controlled, un-gameable:
-  H1  text-SAE features predict real rest/stress (from ECG-derived HRV)
-      above a permutation null AND above raw-act / PCA / random baselines.
-  H2  *unnamed* SAE features add predictive value BEYOND named-concept
-      features (nested, permutation-controlled) -> the 'undiscovered
-      concept' thesis, falsifiable for the first time.
-  H3  features predicting vagal HRV (RMSSD/HF) are distinct from those
-      predicting sympatho-vagal balance (LF/HF) -> physiological
-      specificity, not a generic arousal blob.
+H1  Text-SAE features predict real rest vs stress (from ECG HRV)
+    above a permutation null and above raw-activation, PCA and
+    random-projection baselines.
+H2  Unnamed SAE features add predictive value beyond named-concept
+    features (nested, permutation-controlled). This is the
+    "undiscovered concept" idea, made falsifiable.
+H3  Features that predict vagal HRV (RMSSD/HF) are distinct from
+    those that predict sympatho-vagal balance (LF/HF), i.e.
+    physiological specificity rather than one generic arousal blob.
 
-Honesty controls (non-negotiable):
-  * SUBJECT-grouped CV — windows from one person never split across
-    train/test (the leakage discipline that mattered all week).
-  * Anti-circularity: the text probe contains ONLY numeric HRV values,
-    NEVER the label word ('stress'/'rest'/'baseline' never appear).
-  * Permutation null + raw/PCA/random baselines + nested comparison.
-  * SMOKE-gated. A clean negative is a valid, reported result.
+Controls:
+  * Leave-one-subject-out CV. The strictest subject-grouped split:
+    every subject is held out as the test set in turn.
+  * Anti-circularity: the text probe contains only numeric HRV
+    values. The words stress, rest and baseline never appear.
+  * Permutation null, raw/PCA/random baselines, nested comparison.
+  * Smoke-gated. A clean negative is a real result.
 """
 from __future__ import annotations
 import glob, json, os, pickle, sys, time
@@ -78,7 +79,7 @@ def extract_hrv():
 
 
 def probe_text(f):
-    # NUMERIC ONLY — no condition word ever appears (anti-circularity)
+    # numeric values only; no condition word ever appears (anti-circularity)
     return (f"Cardiac interbeat recording. Mean RR interval "
             f"{f.get('HRV_MeanNN',0):.0f} milliseconds. RMSSD "
             f"{f.get('HRV_RMSSD',0):.0f} milliseconds. SDNN "
@@ -103,7 +104,7 @@ def main():
 
     rows = extract_hrv()
     if len(rows) < 40:
-        sys.exit(f"ABORT: only {len(rows)} HRV windows — too few.")
+        sys.exit(f"ABORT: only {len(rows)} HRV windows, too few.")
     y = np.array([r["y"] for r in rows])
     grp = np.array([r["subject"] for r in rows])
     log(f"windows={len(y)} rest={int((y==0).sum())} stress={int((y==1).sum())}"
@@ -212,23 +213,23 @@ def main():
     if p >= 0.05:
         v1 = (f"H1 NEGATIVE: SAE not above permuted null "
               f"(AUC {sae:.3f}, null95 {res['H1_perm_null95']:.3f}, p={p:.3f})"
-              f" — text-concept features do NOT track real autonomic state.")
+              f". Text-concept features do NOT track real autonomic state.")
     elif sae <= base + 0.02:
         v1 = (f"H1 PARTIAL: SAE above null (p={p:.3f}) but not beating "
-              f"baselines ({sae:.3f} vs {base:.3f}) — grounding exists but "
+              f"baselines ({sae:.3f} vs {base:.3f}). Grounding exists but "
               f"no SAE-specific value.")
     else:
         v1 = (f"H1 POSITIVE: SAE {sae:.3f} beats baselines {base:.3f} and "
-              f"null (p={p:.3f}) — text-concept features genuinely track "
+              f"null (p={p:.3f}). Text-concept features genuinely track "
               f"real autonomic physiology.")
     log("VERDICT H1: " + v1)
     if "H2_increment" in res:
         i, ip = res["H2_increment"], res["H2_increment_p"]
         log("VERDICT H2: " + (
-            f"POSITIVE — unnamed features add real predictive value "
+            f"POSITIVE: unnamed features add real predictive value "
             f"(+{i:.3f}, p={ip:.3f}); the 'undiscovered concept' thesis is "
             f"SUPPORTED on real physiology." if (i > 0.02 and ip < 0.05) else
-            f"NEGATIVE — unnamed features add no value beyond named "
+            f"NEGATIVE: unnamed features add no value beyond named "
             f"concepts (+{i:.3f}, p={ip:.3f}); thesis NOT supported. Valid "
             f"result."))
     log(f"VERDICT H3: vagal/LFHF feature-set Jaccard="

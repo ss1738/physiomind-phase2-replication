@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-PhysioMind Phase-2 — INDEPENDENT REPLICATION of H1 on Stress-Predict.
+PhysioMind Phase 2: independent replication of H1 on Stress-Predict.
 
-Independent cohort/sensor/protocol vs WESAD: Empatica E4 wrist PPG-IBI
-(not chest ECG), Stroop/interview/hyperventilation (not TSST), 35 new
-subjects. Real binary labels (no fabrication). Same honesty harness:
-subject-grouped CV, 1000-perm null, raw/PCA/random baselines,
-anti-circularity (numeric-only probe, never the label word).
+A different cohort, sensor and protocol from WESAD: Empatica E4 wrist
+PPG-IBI instead of chest ECG, Stroop / interview / hyperventilation
+instead of TSST, and a new set of subjects. Real binary labels, no
+fabrication. Same harness as the WESAD run: subject-grouped CV,
+1000-permutation null, raw/PCA/random baselines, and a numeric-only
+probe that never contains the label word.
 
-H1 only (the one real positive worth replicating). A non-replication
-is a valid, important result (WESAD-specific) — reported straight.
+H1 only, since that was the one positive worth replicating. If it
+does not replicate, that is itself the result: the WESAD effect was
+cohort-specific. Reported either way.
 """
 from __future__ import annotations
 import glob, json, os, sys, time
@@ -145,7 +147,7 @@ def main():
 
     rows = extract()
     if len(rows) < 40:
-        sys.exit(f"ABORT: only {len(rows)} windows — too few to test.")
+        sys.exit(f"ABORT: only {len(rows)} windows, too few to test.")
     y = np.array([r["y"] for r in rows])
     grp = np.array([r["subject"] for r in rows])
     log(f"windows={len(y)} baseline={int((y==0).sum())} "
@@ -208,7 +210,7 @@ def main():
     elif sae <= base + 0.02:
         v = (f"REPLICATES (partial, as in WESAD): grounding holds "
              f"(p={p:.3f}) but SAE {sae:.3f} not beating baselines "
-             f"{base:.3f} — same pattern, now cross-cohort/cross-sensor.")
+             f"{base:.3f}; same pattern, now cross-cohort and cross-sensor.")
     else:
         v = (f"REPLICATES + SAE-positive: SAE {sae:.3f} beats baselines "
              f"{base:.3f} & null (p={p:.3f}) on independent cohort. "
