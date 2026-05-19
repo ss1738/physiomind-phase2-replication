@@ -75,12 +75,12 @@ pip install -r requirements.txt
 
 ### Data
 
-- **WESAD** — https://ubicomp.net/sw/data/wesad.html (free, registration required). Set `WESAD` at the top of `pm_phase2.py` and `pm_phase2_loso.py` to the folder containing the subject `.pkl` files.
-- **Stress-Predict** — https://github.com/italha-d/Stress-Predict-Dataset (MIT licence). Set `ROOT` at the top of `pm_replicate.py` to the cloned repo root.
+- **WESAD**: https://ubicomp.net/sw/data/wesad.html (free, registration required). Set `WESAD` at the top of `pm_phase2.py` and `pm_phase2_loso.py` to the folder containing the subject `.pkl` files.
+- **Stress-Predict**: https://github.com/italha-d/Stress-Predict-Dataset (MIT licence). Set `ROOT` at the top of `pm_replicate.py` to the cloned repo root.
 
 ### SAE weights
 
-The sparse autoencoder (`sae_hrv_gpt2_layer6_v2.safetensors`) is a frozen checkpoint trained separately on biomedical text. It is not in this repo due to size. Available on request — open an issue and I will share a download link. Set `SAE_PATH` in each script to the local path after downloading.
+The sparse autoencoder (`sae_hrv_gpt2_layer6_v2.safetensors`) is a frozen checkpoint trained separately on biomedical text. It is not in this repo due to size. Open an issue and I will share a download link. Set `SAE_PATH` in each script to the local path after downloading.
 
 ### Path variables
 
